@@ -207,7 +207,6 @@ class GateManager:
     def get_all_gates_status(self) -> dict:
         now = game_now()
         gates_list = []
-        total_queued = 0
         for gate in self.gates.values():
             with gate.lock:
                 queue_snapshot = []
@@ -216,13 +215,13 @@ class GateManager:
                     queue_snapshot.append({**cp, "position": 0, "wait_time_seconds": now - cp["queued_at"]})
                 for i, g in enumerate(gate.queue):
                     queue_snapshot.append({**g, "position": i + 1, "wait_time_seconds": now - g["queued_at"]})
-                total_queued += len(queue_snapshot)
             gates_list.append({
                 "gate_id": gate.gate_id,
                 "gate_type": gate.gate_type,
                 "queue_size": len(queue_snapshot),
                 "queue": queue_snapshot,
             })
+        total_queued = sum(g["queue_size"] for g in gates_list)
         return {
             "gates": sorted(gates_list, key=lambda g: g["gate_id"]),
             "total_queued": total_queued,
