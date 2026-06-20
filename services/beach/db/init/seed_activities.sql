@@ -1,8 +1,7 @@
-CREATE TABLE IF NOT EXISTS activities (
-    id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    capacity INT NOT NULL
+CREATE TABLE IF NOT EXISTS activity_bookings (
+    activity_id VARCHAR(50) NOT NULL REFERENCES activities(id),
+    visitor_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (activity_id, visitor_id)
 );
 
 INSERT INTO activities (id, name, description, capacity) VALUES
