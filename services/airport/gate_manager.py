@@ -32,7 +32,8 @@ class Gate:
         self.currently_processing: dict | None = None
         self.lock = threading.Lock()
         self.active = True
-
+        self.open: bool = True
+                     
     def enqueue(self, guest: dict) -> int:
         rank = _effective_rank(guest)
         insert_at = len(self.queue)
@@ -95,6 +96,7 @@ class GateManager:
         self.app = app
         self.gates: dict[str, Gate] = {}
         self.assignment_lock = threading.Lock()
+        self.broadcast = broadcast_client
 
         eu_count = EU_GATES
         all_count = ALL_GATES
@@ -139,8 +141,55 @@ class GateManager:
             gate.active = False
 
     def _shortest_queue_gate(self, gate_type: str) -> Gate:
-        candidates = [g for g in self.gates.values() if g.gate_type == gate_type]
+        candidates = [g for g in self.gates.values() if g.gate_type == gate_type and g.open]
         return min(candidates, key=lambda g: len(g.queue))
+
+    def open_gate(self, gate_type: str) -> Gate:
+        if gate_type not in ("EU", "ALL"):
+            raise ValueError("gate_type must be EU or ALL")
+        existing_numbers = [
+            int(gid.split("-")[1]) for gid in self.gates if gid.startswith(f"{gate_type}-")
+        ]
+        next_num = max(existing_numbers, default=0) + 1
+        gate_id = f"{gate_type}-{next_num}"
+        processing_time = PROCESSING_TIME_EU if gate_type == "EU" else PROCESSING_TIME_ALL
+        gate = Gate(gate_id, gate_type, processing_time, self.app, self.broadcast)
+        self.gates[gate_id] = gate
+        gate.start()
+        return gate
+
+    def close_gate(self, gate_id: str) -> dict | None:
+        gate = self.gates.get(gate_id)
+        if gate is None:
+            return None
+        if not gate.open:
+            return {"closed_gate": gate_id, "reassigned_guests": 0}
+
+        same_type_open = [
+            g for g in self.gates.values()
+            if g.gate_type == gate.gate_type and g.open and g.gate_id != gate_id
+        ]
+        if not same_type_open:
+            raise ValueError(f"Cannot close the last open {gate.gate_type} gate")
+
+        gate.open = False
+
+        with gate.lock:
+            stranded = gate.queue[:]
+            gate.queue.clear()
+
+        for guest in stranded:
+            target = min(same_type_open, key=lambda g: len(g.queue))
+            with target.lock:
+                target.enqueue(guest)
+            guest["gate"] = target.gate_id
+            with self.app.app_context():
+                arrival = db.session.get(Arrival, guest["arrival_id"])
+                if arrival:
+                    arrival.gate = target.gate_id
+                    db.session.commit()
+
+        return {"closed_gate": gate_id, "reassigned_guests": len(stranded)}
 
     def assign_and_enqueue(self, guest: dict) -> dict:
         with self.assignment_lock:
