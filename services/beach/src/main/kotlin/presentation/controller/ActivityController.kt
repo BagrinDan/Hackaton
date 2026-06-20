@@ -146,6 +146,7 @@ class ActivityController(
 
     suspend fun addActivity(call: ApplicationCall) {
 
+        if (!call.requireAdmin()) return
         val request = call.receive<ActivityRequest>()
 
         val activity = addActivityUseCase.execute(
@@ -168,6 +169,8 @@ class ActivityController(
     }
 
     suspend fun removeActivity(call: ApplicationCall) {
+
+        if (!call.requireAdmin()) return
 
         val activityId = call.parameters["activity_id"]
             ?: return call.respond(
