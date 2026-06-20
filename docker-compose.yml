@@ -55,6 +55,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    env_file:
+      - ./services/hotel/.env
     environment:
       - DATABASE_URL=postgresql://hotel_user:hotel_pass@hotel_db:5432/hotel
       - BROADCAST_URL=http://broadcast:3002
