@@ -12,5 +12,11 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/build/libs/*-all.jar app.jar
 
-EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+RUN printf '#!/bin/sh\n\
+if [ -n "$JDBC_URL" ]; then\n\
+  export JDBC_URL=$(echo "$JDBC_URL" | sed "s|^postgresql://|jdbc:postgresql://|")\n\
+fi\n\
+exec java -jar app.jar\n' > /start.sh && chmod +x /start.sh
+
+EXPOSE 10000
+CMD ["/start.sh"]
