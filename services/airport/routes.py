@@ -23,6 +23,11 @@ def register_routes(app):
         except ValidationError as err:
             return jsonify({"errors": err.messages}), 400
 
+        existing = Arrival.query.filter_by(guest_id=guest["guest_id"]) \
+            .filter(Arrival.status.in_(["queued", "processing"])).first()
+        if existing:
+            
+            return jsonify({"error": "Guest already has an active arrival"}), 409
         result = app.gate_manager.assign_and_enqueue(guest)
         return jsonify(result), 202
 
