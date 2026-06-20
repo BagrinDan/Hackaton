@@ -8,6 +8,8 @@ import { CancelReservationResponseDto } from './dto/cancel-reservation-response.
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { ReservationResponseDto } from './dto/reservation-response.dto';
 
+const MAX_TRANSACTION_RETRIES = 3;
+
 @Injectable()
 export class ReservationService {
   constructor(
@@ -28,7 +30,7 @@ export class ReservationService {
       );
     }
 
-    // Баг 2
+    // Found-1
     await this.rejectIfGuestHasNotClearedAirport(createReservationDto.guest_id);
 
     const rooms = await this.prisma.room.findMany({
@@ -36,7 +38,7 @@ export class ReservationService {
       orderBy: { id: 'asc' },
     });
 
-    // Баг 5
+    // Found-2
     const maxCapacity = Math.max(...rooms.map((room) => room.capacity), 0);
     if (createReservationDto.guest_count > maxCapacity) {
       throw new HttpException(
@@ -47,51 +49,11 @@ export class ReservationService {
       );
     }
 
-    // Баг 3
-    const reservation = await this.prisma.$transaction(async (tx) => {
-      let availableRoom: (typeof rooms)[number] | null = null;
-
-      for (const room of rooms) {
-        if (createReservationDto.guest_count > room.capacity) {
-          continue;
-        }
-
-        const overlappingReservationCount = await tx.reservation.count({
-          where: {
-            room_id: room.id,
-            status: ReservationStatus.CONFIRMED,
-            check_in_day: { lte: createReservationDto.check_out_day },
-            check_out_day: { gte: createReservationDto.check_in_day },
-          },
-        });
-
-        if (overlappingReservationCount === 0) {
-          availableRoom = room;
-          break;
-        }
-      }
-
-      if (!availableRoom) {
-        throw new HttpException(
-          {
-            error: `No available rooms of type ${createReservationDto.room_type} for days ${createReservationDto.check_in_day}-${createReservationDto.check_out_day}`,
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      return tx.reservation.create({
-        data: {
-          guest_id: createReservationDto.guest_id,
-          room_id: availableRoom.id,
-          guest_count: createReservationDto.guest_count,
-          check_in_day: createReservationDto.check_in_day,
-          check_out_day: createReservationDto.check_out_day,
-          status: ReservationStatus.CONFIRMED,
-        },
-        include: { room: true },
-      });
-    }, { isolation: Prisma.TransactionIsolationLevel.Serializable });
+    // Found-3
+    const reservation = await this.createReservationWithRetry(
+      createReservationDto,
+      rooms,
+    );
 
     await this.broadcast.publishHotelEvent(
       HotelBroadcastEventType.ReservationConfirmed,
@@ -118,6 +80,78 @@ export class ReservationService {
     };
   }
 
+  private async createReservationWithRetry(
+    createReservationDto: CreateReservationDto,
+    rooms: Array<{ id: string; type: any; capacity: number }>,
+  ) {
+    for (let attempt = 0; attempt < MAX_TRANSACTION_RETRIES; attempt++) {
+      try {
+        return await this.prisma.$transaction(
+          async (tx) => {
+            let availableRoom: (typeof rooms)[number] | null = null;
+
+            for (const room of rooms) {
+              if (createReservationDto.guest_count > room.capacity) {
+                continue;
+              }
+
+              const overlappingReservationCount = await tx.reservation.count({
+                where: {
+                  room_id: room.id,
+                  status: ReservationStatus.CONFIRMED,
+                  check_in_day: { lte: createReservationDto.check_out_day },
+                  check_out_day: { gte: createReservationDto.check_in_day },
+                },
+              });
+
+              if (overlappingReservationCount === 0) {
+                availableRoom = room;
+                break;
+              }
+            }
+
+            if (!availableRoom) {
+              throw new HttpException(
+                {
+                  error: `No available rooms of type ${createReservationDto.room_type} for days ${createReservationDto.check_in_day}-${createReservationDto.check_out_day}`,
+                },
+                HttpStatus.CONFLICT,
+              );
+            }
+
+            return tx.reservation.create({
+              data: {
+                guest_id: createReservationDto.guest_id,
+                room_id: availableRoom.id,
+                guest_count: createReservationDto.guest_count,
+                check_in_day: createReservationDto.check_in_day,
+                check_out_day: createReservationDto.check_out_day,
+                status: ReservationStatus.CONFIRMED,
+              },
+              include: { room: true },
+            });
+          },
+          { isolation: Prisma.TransactionIsolationLevel.Serializable },
+        );
+      } catch (err) {
+        const isSerializationConflict =
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === 'P2034';
+
+        if (isSerializationConflict && attempt < MAX_TRANSACTION_RETRIES - 1) {
+          continue;
+        }
+
+        throw err;
+      }
+    }
+
+    throw new HttpException(
+      { error: 'Could not complete reservation due to high contention, please retry' },
+      HttpStatus.CONFLICT,
+    );
+  }
+
   private async rejectIfGuestHasNotClearedAirport(
     guestId: string,
   ): Promise<void> {
@@ -132,7 +166,6 @@ export class ReservationService {
     }
   }
 
-  // see findActiveByGuestId for the optimized query path
   async findById(id: string): Promise<ReservationResponseDto> {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
@@ -158,7 +191,7 @@ export class ReservationService {
     };
   }
 
-  // Баг 1, Баг 4
+  // Found-4 and [BUG, 3]
   async findActiveByGuestId(guestId: string): Promise<ReservationResponseDto> {
     const rows = await this.prisma.$queryRaw<any[]>(
       Prisma.sql`
@@ -192,7 +225,7 @@ export class ReservationService {
     };
   }
 
-  // Баг 6, Баг 7
+  // Found-5 and [BUG, 2]
   async cancel(id: string): Promise<CancelReservationResponseDto> {
     const existing = await this.prisma.reservation.findUnique({
       where: { id },
