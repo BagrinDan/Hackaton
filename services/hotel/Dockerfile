@@ -4,9 +4,12 @@ RUN npm install -g pnpm
 
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
+
+# Генерируем Prisma клиент вручную после install
+RUN pnpm exec prisma generate
 RUN pnpm build
 
 # ── Runtime ──────────────────────────────────────────────
@@ -19,6 +22,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json .
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 

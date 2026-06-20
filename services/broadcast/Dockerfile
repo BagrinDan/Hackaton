@@ -5,7 +5,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build 2>/dev/null || true   # если нет build скрипта — не падаем
+RUN npm run build 2>/dev/null || true   
 
 # ── Runtime ──────────────────────────────────────────────
 FROM node:20-alpine
@@ -14,4 +14,4 @@ WORKDIR /app
 COPY --from=builder /app .
 
 EXPOSE 3002
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/server.js"]

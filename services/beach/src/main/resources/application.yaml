@@ -1,13 +1,13 @@
 ktor:
   deployment:
-    port: ${APP_PORT}
+    port: 8080
   application:
     modules:
       - com.hackathon.summer.faf.ApplicationKt.module
 
 database:
-  jdbcUrl: ${JDBC_URL}
+  jdbcUrl: dsa
   driverClassName: "org.postgresql.Driver"
-  username: ${DB_USER}
-  password: ${DB_PASSWORD}
+  username: dsa
+  password: dsa
   maximumPoolSize: 10
