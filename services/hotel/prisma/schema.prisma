@@ -1,0 +1,39 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoomType {
+  STANDARD
+  DELUXE
+  SUITE
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model Room {
+  id             String        @id
+  type           RoomType
+  capacity       Int
+  price_per_night Int
+  reservations   Reservation[]
+}
+
+model Reservation {
+  id            String            @id @default(uuid())
+  guest_id      String
+  room_id       String
+  guest_count   Int
+  check_in_day  Int
+  check_out_day Int
+  status        ReservationStatus @default(CONFIRMED)
+  room          Room              @relation(fields: [room_id], references: [id])
+}

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 900">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-2 {
+        fill: #65b8b1;
+      }
+
+      .cls-3 {
+        isolation: isolate;
+      }
+
+      .cls-4 {
+        fill: #3a4d57;
+      }
+
+      .cls-5 {
+        fill: #27253f;
+      }
+
+      .cls-6 {
+        fill: url(#Unnamed_Pattern_11);
+        mix-blend-mode: screen;
+      }
+    </style>
+    <pattern id="Unnamed_Pattern_11" data-name="Unnamed Pattern 11" x="0" y="0" width="57.39" height="57.39" patternTransform="translate(513.67 55.06)" patternUnits="userSpaceOnUse" viewBox="0 0 57.39 57.39">
+      <g>
+        <rect class="cls-1" width="57.39" height="57.39"/>
+        <rect class="cls-5" x="5.37" y="4.3" width="9.5" height="1.5"/>
+        <rect class="cls-5" x="42.59" y="41.3" width="9.5" height="1.5"/>
+        <rect class="cls-5" x="13.25" y="34.3" width="9.5" height="1.5"/>
+        <rect class="cls-5" x="26.62" y="47.31" width="9.5" height="1.5"/>
+        <rect class="cls-5" x="21.86" y="11.31" width="4.17" height="1.5"/>
+        <rect class="cls-5" x="35.69" y="4.39" width="4.17" height="1.5"/>
+        <rect class="cls-5" x="50.97" y="11.6" width="4.17" height="1.5"/>
+        <rect class="cls-5" x="51.33" y="49.3" width="4.17" height="1.5"/>
+        <rect class="cls-5" x="6.42" y="48.9" width="4.17" height="1.5"/>
+        <rect class="cls-5" x="29.86" y="39.8" width="4.17" height="1.5"/>
+        <rect class="cls-4" x="34.02" y="29.39" width="4.17" height="1.5"/>
+        <rect class="cls-4" x="44.22" y="21.8" width="4.17" height="1.5"/>
+        <rect class="cls-4" x="52.09" y="21.8" width="4.17" height="1.5"/>
+        <rect class="cls-4" x="22.9" y="50.8" width="4.17" height="1.5"/>
+        <rect class="cls-4" x="43.18" y="46.56" width="4.17" height="1.5"/>
+        <rect class="cls-5" x="8.5" y="18.94" width="9.5" height="1.5"/>
+        <rect class="cls-4" x="37.38" y="15.18" width="9.5" height="1.5"/>
+        <rect class="cls-4" x="28.69" y="19.69" width="9.5" height="1.5"/>
+        <rect class="cls-4" x="39.28" y="34.68" width="9.5" height="1.5"/>
+        <path class="cls-5" d="M43.63,5.14c0,.57-.47,1.04-1.04,1.04s-1.04-.46-1.04-1.04.46-1.04,1.04-1.04,1.04.47,1.04,1.04Z"/>
+        <path class="cls-5" d="M48.38,5.14c0,.57-.47,1.04-1.04,1.04s-1.04-.46-1.04-1.04.46-1.04,1.04-1.04,1.04.47,1.04,1.04Z"/>
+        <path class="cls-5" d="M9.54,32.73c0,.57-.46,1.04-1.04,1.04s-1.04-.47-1.04-1.04.46-1.04,1.04-1.04,1.04.46,1.04,1.04Z"/>
+        <path class="cls-5" d="M15.91,12.81c0,.57-.46,1.04-1.04,1.04s-1.04-.47-1.04-1.04.47-1.04,1.04-1.04,1.04.47,1.04,1.04Z"/>
+        <path class="cls-5" d="M51.33,54.14c0,.57-.47,1.04-1.04,1.04s-1.04-.46-1.04-1.04.47-1.04,1.04-1.04,1.04.46,1.04,1.04Z"/>
+        <path class="cls-5" d="M34.48,11.77c0,.57-.47,1.04-1.04,1.04s-1.04-.47-1.04-1.04.47-1.04,1.04-1.04,1.04.47,1.04,1.04Z"/>
+        <path class="cls-4" d="M11.71,11.31c0,.57-.47,1.04-1.04,1.04s-1.04-.47-1.04-1.04.47-1.04,1.04-1.04,1.04.47,1.04,1.04Z"/>
+        <circle class="cls-4" cx="25.58" cy="27.59" r="1.04"/>
+        <path class="cls-4" d="M30.89,27.59c0,.57-.47,1.04-1.04,1.04s-1.04-.46-1.04-1.04.47-1.04,1.04-1.04,1.04.47,1.04,1.04Z"/>
+        <path class="cls-4" d="M43.16,27.59c0,.57-.46,1.04-1.04,1.04s-1.04-.46-1.04-1.04.47-1.04,1.04-1.04,1.04.47,1.04,1.04Z"/>
+        <path class="cls-4" d="M23.94,42.05c0,.57-.47,1.04-1.04,1.04s-1.04-.47-1.04-1.04.47-1.04,1.04-1.04,1.04.46,1.04,1.04Z"/>
+        <circle class="cls-4" cx="2.67" cy="1.97" r="1.04"/>
+        <path class="cls-4" d="M5.79,26.55c0,.57-.46,1.04-1.04,1.04s-1.04-.47-1.04-1.04.46-1.04,1.04-1.04,1.04.46,1.04,1.04Z"/>
+      </g>
+    </pattern>
+  </defs>
+  <g class="cls-3">
+    <g id="Water">
+      <g>
+        <rect class="cls-2" width="1600" height="900"/>
+        <rect class="cls-6" width="1600" height="900"/>
+      </g>
+    </g>
+  </g>
+</svg>

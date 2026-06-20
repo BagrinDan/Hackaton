@@ -1,0 +1,101 @@
+[
+  {
+    "id": "mango-miles",
+    "name": "Miles",
+    "surname": "Mango",
+    "age": 34,
+    "passport": "EU",
+    "priority": "standard",
+    "disability": false,
+    "avatar": "mango-miles.png",
+    "personality": "Always books the earliest beach yoga slot."
+  },
+  {
+    "id": "luna-lagoon",
+    "name": "Luna",
+    "surname": "Lagoon",
+    "age": 29,
+    "passport": "non-EU",
+    "priority": "fast",
+    "disability": false,
+    "avatar": "luna-lagoon.png",
+    "personality": "Collects seashells and airport lounge snacks."
+  },
+  {
+    "id": "coral-reef",
+    "name": "Coral",
+    "surname": "Reef",
+    "age": 42,
+    "passport": "non-EU",
+    "priority": "standard",
+    "disability": true,
+    "avatar": "coral-reef.png",
+    "personality": "Knows every accessible path through the resort."
+  },
+  {
+    "id": "solana-breeze",
+    "name": "Solana",
+    "surname": "Breeze",
+    "age": 25,
+    "passport": "EU",
+    "priority": "standard",
+    "disability": false,
+    "avatar": "solana-breeze.png",
+    "personality": "Plans every activity around the sunset."
+  },
+  {
+    "id": "palm-pierce",
+    "name": "Pierce",
+    "surname": "Palm",
+    "age": 51,
+    "passport": "EU",
+    "priority": "fast",
+    "disability": false,
+    "avatar": "palm-pierce.png",
+    "personality": "Asks every parrot for investment advice."
+  },
+  {
+    "id": "marina-shells",
+    "name": "Marina",
+    "surname": "Shells",
+    "age": 37,
+    "passport": "EU",
+    "priority": "standard",
+    "disability": false,
+    "avatar": "marina-shells.png",
+    "personality": "Rates hotels by pillow softness and juice quality."
+  },
+  {
+    "id": "captain-coconut",
+    "name": "Cody",
+    "surname": "Coconut",
+    "age": 46,
+    "passport": "EU",
+    "priority": "standard",
+    "disability": false,
+    "avatar": "captain-coconut.png",
+    "personality": "Insists he can navigate by palm tree shadows."
+  },
+  {
+    "id": "talia-tide",
+    "name": "Talia",
+    "surname": "Tide",
+    "age": 31,
+    "passport": "EU",
+    "priority": "standard",
+    "disability": false,
+    "avatar": "talia-tide.png",
+    "personality": "Cancels beach plans only for better beach plans."
+  },
+  {
+    "id": "reef-rivers",
+    "name": "Reef",
+    "surname": "Rivers",
+    "age": 68,
+    "passport": "EU",
+    "priority": "standard",
+    "disability": true,
+    "avatar": "reef-rivers.png",
+    "personality": "Keeps a handwritten map of every quiet corner."
+  }
+]

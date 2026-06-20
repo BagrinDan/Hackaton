@@ -1,0 +1,79 @@
+.env
+.DS_Store
+
+# Gradle
+.gradle/
+build/
+out/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Kotlin
+.kotlin/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+
+# Application secrets
+application-local.yaml
+application-local.yml
+
+# Generated files
+generated/
+tmp/
+
+# Java
+*.class
+
+# Ktor
+fat.jar
+
+# Maven (if accidentally added)
+target/
+
+# Database files
+*.db
+*.mv.db
+*.trace.db
+
+# H2 database
+*.h2.db
+
+# PostgreSQL local dumps
+*.dump
+
+# Coverage
+coverage/
+jacoco.exec
+
+# Test reports
+test-results/
+reports/
+
+# Package archives
+*.jar
+*.war
+*.ear
+
+# Crash logs
+hs_err_pid*
+replay_pid*
+node_modules
+dist
+.env
+npm-debug.log
+.git
+.vscode

@@ -1,0 +1,13 @@
+ktor:
+  deployment:
+    port: ${APP_PORT}
+  application:
+    modules:
+      - com.hackathon.summer.faf.ApplicationKt.module
+
+database:
+  jdbcUrl: ${JDBC_URL}
+  driverClassName: "org.postgresql.Driver"
+  username: ${DB_USER}
+  password: ${DB_PASSWORD}
+  maximumPoolSize: 10

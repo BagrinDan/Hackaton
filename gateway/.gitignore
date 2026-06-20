@@ -1,0 +1,15 @@
+# Compiled binary
+gateway
+gateway.exe
+
+# Test binary
+*.test
+
+# Go build cache
+*.exe~
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
