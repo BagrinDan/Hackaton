@@ -68,8 +68,45 @@ def register_routes(app):
         if passport_type:
             query = query.filter_by(passport_type=passport_type)
 
-        arrivals = query.order_by(Arrival.queued_at.desc()).all()
-        return jsonify({"arrivals": arrivals_schema.dump(arrivals)}), 200
+        limit_param = request.args.get("limit")
+        if limit_param is None:
+            arrivals = query.order_by(Arrival.queued_at.desc()).all()
+            return jsonify({
+                "arrivals": arrivals_schema.dump(arrivals),
+                "next_cursor": None,
+                "total": len(arrivals),
+            }), 200
+
+        try:
+            limit = int(limit_param)
+            if limit <= 0:
+                raise ValueError
+        except ValueError:
+            return jsonify({"errors": {"limit": ["Must be a positive integer."]}}), 400
+
+        total = query.count()
+        paged_query = query.order_by(Arrival.id.asc())
+
+        cursor_param = request.args.get("cursor")
+        if cursor_param is not None:
+            try:
+                cursor_id = int(cursor_param)
+            except ValueError:
+                return jsonify({"errors": {"cursor": ["Must be a valid cursor."]}}), 400
+            paged_query = paged_query.filter(Arrival.id > cursor_id)
+
+        rows = paged_query.limit(limit + 1).all()
+
+        next_cursor = None
+        if len(rows) > limit:
+            next_cursor = str(rows[limit - 1].id)
+            rows = rows[:limit]
+
+        return jsonify({
+            "arrivals": arrivals_schema.dump(rows),
+            "next_cursor": next_cursor,
+            "total": total,
+        }), 200
 
     @app.route("/queue", methods=["GET"])
     def get_queue():
