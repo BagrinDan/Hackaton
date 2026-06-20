@@ -9,6 +9,8 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
+
+
 object DatabaseFactory {
     fun init(config: ApplicationConfig) {
         val rawUrl = System.getenv("JDBC_URL") ?: config.property("database.jdbcUrl").getString()
@@ -19,11 +21,12 @@ object DatabaseFactory {
         val password: String
         
         if (rawUrl.startsWith("postgresql://") || rawUrl.startsWith("postgres://")) {
-            val uri = java.net.URI(rawUrl)
-            val userInfo = uri.userInfo?.split(":") ?: listOf("beach_user", "")
-            jdbcUrl = "jdbc:postgresql://${uri.host}:${if (uri.port == -1) 5432 else uri.port}${uri.path}"
-            username = userInfo[0]
-            password = userInfo.getOrElse(1) { "" }
+            val regex = Regex("^(?:postgresql|postgres)://([^:]+):([^@]+)@([^/]+)/(.+)$")
+            val match = regex.find(rawUrl)!!
+            val (user, pass, host, db) = match.destructured
+            jdbcUrl = "jdbc:postgresql://$host/$db"
+            username = user
+            password = pass
         } else {
             jdbcUrl = rawUrl
             username = System.getenv("DB_USER") ?: config.property("database.username").getString()
