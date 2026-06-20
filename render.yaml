@@ -100,15 +100,13 @@ services:
           name: beach-db
           property: connectionString
       - key: DB_USER
-        fromDatabase:
-          name: beach-db
-          property: user
+        value: beach_user
       - key: DB_PASSWORD
         fromDatabase:
           name: beach-db
           property: password
       - key: APP_PORT
-        value: "8080"
+        value: "10000"
       - key: BROADCAST_URL
         fromService:
           name: broadcast
