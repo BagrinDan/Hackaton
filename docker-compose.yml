@@ -1,0 +1,152 @@
+version: "3.9"
+
+services:
+  # ── Frontend ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_GATEWAY_URL=http://gateway:8000
+    depends_on:
+      - gateway
+    networks:
+      - island
+
+  # ── Gateway ───────────────────────────────────────────────
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - AIRPORT_URL=http://airport:3001
+      - HOTEL_URL=http://hotel:3000
+      - BEACH_URL=http://beach:8080
+      - PARROT_URL=http://parrot:3003
+      - BROADCAST_URL=http://broadcast:3002
+    depends_on:
+      - airport
+      - hotel
+      - beach
+      - parrot
+      - broadcast
+    networks:
+      - island
+
+  # ── Airport ───────────────────────────────────────────────
+  airport:
+    build:
+      context: ./airport
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=sqlite:///./airport.db
+      - BROADCAST_URL=http://broadcast:3002
+    volumes:
+      - airport_data:/app/data
+    networks:
+      - island
+
+  # ── Hotel ─────────────────────────────────────────────────
+  hotel:
+    build:
+      context: ./hotel
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://hotel_user:hotel_pass@hotel_db:5432/hotel
+      - BROADCAST_URL=http://broadcast:3002
+    depends_on:
+      hotel_db:
+        condition: service_healthy
+    networks:
+      - island
+
+  hotel_db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=hotel_user
+      - POSTGRES_PASSWORD=hotel_pass
+      - POSTGRES_DB=hotel
+    volumes:
+      - hotel_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotel_user -d hotel"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - island
+
+  # ── Beach ─────────────────────────────────────────────────
+  beach:
+    build:
+      context: ./beach
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://beach_user:beach_pass@beach_db:5432/beach
+      - BROADCAST_URL=http://broadcast:3002
+    depends_on:
+      beach_db:
+        condition: service_healthy
+    networks:
+      - island
+
+  beach_db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=beach_user
+      - POSTGRES_PASSWORD=beach_pass
+      - POSTGRES_DB=beach
+    volumes:
+      - beach_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U beach_user -d beach"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - island
+
+  # ── Parrot (AI assistant) ─────────────────────────────────
+  parrot:
+    build:
+      context: ./parrot
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - AIRPORT_URL=http://airport:3001
+      - HOTEL_URL=http://hotel:3000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}   # OPEN ROUTER API
+      - airport
+      - hotel
+    networks:
+      - island
+
+  # ── Broadcast (SSE hub) ───────────────────────────────────
+  broadcast:
+    build:
+      context: ./broadcast
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    networks:
+      - island
+
+volumes:
+  airport_data:
+  hotel_pg_data:
+  beach_pg_data:
+
+networks:
+  island:
+    driver: bridge
