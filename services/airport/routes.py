@@ -23,6 +23,11 @@ def register_routes(app):
         except ValidationError as err:
             return jsonify({"errors": err.messages}), 400
 
+        existing = Arrival.query.filter_by(guest_id=guest["guest_id"]) \
+            .filter(Arrival.status.in_(["queued", "processing"])).first()
+        if existing:
+            
+            return jsonify({"error": "Guest already has an active arrival"}), 409
         result = app.gate_manager.assign_and_enqueue(guest)
         return jsonify(result), 202
 
@@ -63,8 +68,45 @@ def register_routes(app):
         if passport_type:
             query = query.filter_by(passport_type=passport_type)
 
-        arrivals = query.order_by(Arrival.queued_at.desc()).all()
-        return jsonify({"arrivals": arrivals_schema.dump(arrivals)}), 200
+        limit_param = request.args.get("limit")
+        if limit_param is None:
+            arrivals = query.order_by(Arrival.queued_at.desc()).all()
+            return jsonify({
+                "arrivals": arrivals_schema.dump(arrivals),
+                "next_cursor": None,
+                "total": len(arrivals),
+            }), 200
+
+        try:
+            limit = int(limit_param)
+            if limit <= 0:
+                raise ValueError
+        except ValueError:
+            return jsonify({"errors": {"limit": ["Must be a positive integer."]}}), 400
+
+        total = query.count()
+        paged_query = query.order_by(Arrival.id.asc())
+
+        cursor_param = request.args.get("cursor")
+        if cursor_param is not None:
+            try:
+                cursor_id = int(cursor_param)
+            except ValueError:
+                return jsonify({"errors": {"cursor": ["Must be a valid cursor."]}}), 400
+            paged_query = paged_query.filter(Arrival.id > cursor_id)
+
+        rows = paged_query.limit(limit + 1).all()
+
+        next_cursor = None
+        if len(rows) > limit:
+            next_cursor = str(rows[limit - 1].id)
+            rows = rows[:limit]
+
+        return jsonify({
+            "arrivals": arrivals_schema.dump(rows),
+            "next_cursor": next_cursor,
+            "total": total,
+        }), 200
 
     @app.route("/queue", methods=["GET"])
     def get_queue():
@@ -73,6 +115,28 @@ def register_routes(app):
     @app.route("/stats", methods=["GET"])
     def get_stats_route():
         return jsonify(get_stats()), 200
+
+    @app.route("/gates", methods=["POST"])
+    def open_gate_route():
+        data = request.get_json(silent=True) or {}
+        gate_type = data.get("gate_type")
+        if gate_type not in ("EU", "ALL"):
+            return jsonify({"errors": {"gate_type": ["Must be one of: EU, ALL."]}}), 400
+
+        gate = app.gate_manager.open_gate(gate_type)
+        return jsonify({"gate_id": gate.gate_id, "gate_type": gate.gate_type}), 201
+
+    @app.route("/gates/<gate_id>", methods=["DELETE"])
+    def close_gate_route(gate_id):
+        try:
+            result = app.gate_manager.close_gate(gate_id)
+        except ValueError as err:
+            return jsonify({"error": str(err)}), 400
+
+        if result is None:
+            return jsonify({"error": "Gate not found"}), 404
+
+        return jsonify(result), 200
 
     @app.route("/health", methods=["GET"])
     def health():
