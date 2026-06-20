@@ -1,10 +1,8 @@
-
-
 databases:
   - name: hotel-db
     databaseName: hotel
     user: hotel_user
-    plan: free                  
+    plan: free
 
   - name: beach-db
     databaseName: beach
@@ -12,24 +10,24 @@ databases:
     plan: free
 
 services:
-  # ── Frontend ──────────────────────────────────────────────
   - type: web
     name: frontend
     runtime: docker
     dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
     plan: free
     envVars:
       - key: VITE_GATEWAY_URL
         fromService:
           name: gateway
           type: web
-          property: host          # !!!
+          property: host
 
-  # ── Gateway ───────────────────────────────────────────────
   - type: web
     name: gateway
     runtime: docker
     dockerfilePath: ./gateway/Dockerfile
+    dockerContext: ./gateway
     plan: free
     envVars:
       - key: AIRPORT_URL
@@ -58,11 +56,11 @@ services:
           type: web
           property: host
 
-  # ── Airport ───────────────────────────────────────────────
   - type: web
     name: airport
     runtime: docker
-    dockerfilePath: ./airport/Dockerfile
+    dockerfilePath: ./services/airport/Dockerfile
+    dockerContext: ./services/airport
     plan: free
     envVars:
       - key: DATABASE_URL
@@ -73,11 +71,11 @@ services:
           type: web
           property: host
 
-  # ── Hotel ─────────────────────────────────────────────────
   - type: web
     name: hotel
     runtime: docker
-    dockerfilePath: ./hotel/Dockerfile
+    dockerfilePath: ./services/hotel/Dockerfile
+    dockerContext: ./services/hotel
     plan: free
     envVars:
       - key: DATABASE_URL
@@ -90,11 +88,11 @@ services:
           type: web
           property: host
 
-  # ── Beach ─────────────────────────────────────────────────
   - type: web
     name: beach
     runtime: docker
-    dockerfilePath: ./beach/Dockerfile
+    dockerfilePath: ./services/beach/Dockerfile
+    dockerContext: ./services/beach
     plan: free
     envVars:
       - key: DATABASE_URL
@@ -107,11 +105,11 @@ services:
           type: web
           property: host
 
-  # ── Parrot ────────────────────────────────────────────────
   - type: web
     name: parrot
     runtime: docker
-    dockerfilePath: ./parrot/Dockerfile
+    dockerfilePath: ./services/parrot/Dockerfile
+    dockerContext: ./services/parrot
     plan: free
     envVars:
       - key: AIRPORT_URL
@@ -125,13 +123,11 @@ services:
           type: web
           property: host
       - key: OPENAI_API_KEY
-        sync: false              # введи вручную в дашборде Render
+        sync: false
 
-  # ── Broadcast (SSE) ───────────────────────────────────────
   - type: web
     name: broadcast
     runtime: docker
-    dockerfilePath: ./broadcast/Dockerfile
+    dockerfilePath: ./services/broadcast/Dockerfile
+    dockerContext: ./services/broadcast
     plan: free
-    # SSE требует HTTP/1.1 keep-alive — Render поддерживает из коробки.
-    # Убедись что сервер НЕ буферизует ответы (res.flush() / chunk encoding).
