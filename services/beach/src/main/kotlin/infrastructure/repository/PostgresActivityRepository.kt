@@ -112,3 +112,40 @@ class PostgresActivityRepository : ActivityRepository {
         }
     }
 }
+
+override fun tryBook(activityId: String, visitorId: String): com.hackathon.summer.faf.domain.repository.BookingResult {
+
+    return transaction {
+
+        val activityRow = ActivityTable
+            .select { ActivityTable.id eq activityId }
+            .forUpdate()
+            .singleOrNull()
+            ?: return@transaction com.hackathon.summer.faf.domain.repository.BookingResult.ACTIVITY_NOT_FOUND
+
+        val capacity = activityRow[ActivityTable.capacity]
+
+        val currentBookingsCount = BookingTable
+            .select { BookingTable.activityId eq activityId }
+            .count()
+
+        val alreadyBooked = BookingTable
+            .select { (BookingTable.activityId eq activityId) and (BookingTable.visitorId eq visitorId) }
+            .count() > 0
+
+        if (alreadyBooked) {
+            return@transaction com.hackathon.summer.faf.domain.repository.BookingResult.ALREADY_BOOKED
+        }
+
+        if (currentBookingsCount >= capacity) {
+            return@transaction com.hackathon.summer.faf.domain.repository.BookingResult.FULL
+        }
+
+        BookingTable.insert {
+            it[BookingTable.activityId] = activityId
+            it[BookingTable.visitorId] = visitorId
+        }
+
+        com.hackathon.summer.faf.domain.repository.BookingResult.SUCCESS
+    }
+}
