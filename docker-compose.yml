@@ -1,7 +1,6 @@
 version: "3.9"
 
 services:
-  # ── Frontend ──────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -9,13 +8,12 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_GATEWAY_URL=http://gateway:8000
+      - VITE_GATEWAY_URL=http://localhost:8000
     depends_on:
       - gateway
     networks:
       - island
 
-  # ── Gateway ───────────────────────────────────────────────
   gateway:
     build:
       context: ./gateway
@@ -37,25 +35,23 @@ services:
     networks:
       - island
 
-  # ── Airport ───────────────────────────────────────────────
   airport:
     build:
-      context: ./airport
+      context: ./services/airport
       dockerfile: Dockerfile
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=sqlite:///./airport.db
+      - DATABASE_URL=sqlite:///./data/airport.db
       - BROADCAST_URL=http://broadcast:3002
     volumes:
       - airport_data:/app/data
     networks:
       - island
 
-  # ── Hotel ─────────────────────────────────────────────────
   hotel:
     build:
-      context: ./hotel
+      context: ./services/hotel
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -84,10 +80,9 @@ services:
     networks:
       - island
 
-  # ── Beach ─────────────────────────────────────────────────
   beach:
     build:
-      context: ./beach
+      context: ./services/beach
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
@@ -116,26 +111,25 @@ services:
     networks:
       - island
 
-  # ── Parrot (AI assistant) ─────────────────────────────────
   parrot:
     build:
-      context: ./parrot
+      context: ./services/parrot
       dockerfile: Dockerfile
     ports:
       - "3003:3003"
     environment:
       - AIRPORT_URL=http://airport:3001
       - HOTEL_URL=http://hotel:3000
-      - OPENAI_API_KEY=${OPENAI_API_KEY}   # OPEN ROUTER API
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
       - airport
       - hotel
     networks:
       - island
 
-  # ── Broadcast (SSE hub) ───────────────────────────────────
   broadcast:
     build:
-      context: ./broadcast
+      context: ./services/broadcast
       dockerfile: Dockerfile
     ports:
       - "3002:3002"
