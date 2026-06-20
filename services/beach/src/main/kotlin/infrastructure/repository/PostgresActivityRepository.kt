@@ -3,6 +3,7 @@ package com.hackathon.summer.faf.infrastructure.repository
 import com.hackathon.summer.faf.domain.model.Activity
 import com.hackathon.summer.faf.domain.repository.ActivityRepository
 import com.hackathon.summer.faf.infrastructure.database.table.ActivityTable
+import com.hackathon.summer.faf.infrastructure.database.table.BookingTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -12,13 +13,21 @@ class PostgresActivityRepository : ActivityRepository {
 
         return transaction {
 
-            ActivityTable.selectAll().map {
+            ActivityTable.selectAll().map { row ->
+
+                val activityId = row[ActivityTable.id]
+
+                val bookedVisitors = BookingTable
+                    .select { BookingTable.activityId eq activityId }
+                    .map { it[BookingTable.visitorId] }
+                    .toMutableSet()
 
                 Activity(
-                    id = it[ActivityTable.id],
-                    name = it[ActivityTable.name],
-                    description = it[ActivityTable.description],
-                    capacity = it[ActivityTable.capacity]
+                    id = activityId,
+                    name = row[ActivityTable.name],
+                    description = row[ActivityTable.description],
+                    capacity = row[ActivityTable.capacity],
+                    bookedVisitors = bookedVisitors
                 )
             }
         }
@@ -30,13 +39,19 @@ class PostgresActivityRepository : ActivityRepository {
 
             ActivityTable
                 .select { ActivityTable.id eq id }
-                .map {
+                .map { row ->
+
+                    val bookedVisitors = BookingTable
+                        .select { BookingTable.activityId eq id }
+                        .map { it[BookingTable.visitorId] }
+                        .toMutableSet()
 
                     Activity(
-                        id = it[ActivityTable.id],
-                        name = it[ActivityTable.name],
-                        description = it[ActivityTable.description],
-                        capacity = it[ActivityTable.capacity]
+                        id = id,
+                        name = row[ActivityTable.name],
+                        description = row[ActivityTable.description],
+                        capacity = row[ActivityTable.capacity],
+                        bookedVisitors = bookedVisitors
                     )
                 }
                 .singleOrNull()
@@ -71,6 +86,27 @@ class PostgresActivityRepository : ActivityRepository {
                     it[name] = activity.name
                     it[description] = activity.description
                     it[capacity] = activity.capacity
+                }
+            }
+
+            val existingBookings = BookingTable
+                .select { BookingTable.activityId eq activity.id }
+                .map { it[BookingTable.visitorId] }
+                .toSet()
+
+            val toAdd = activity.bookedVisitors - existingBookings
+            val toRemove = existingBookings - activity.bookedVisitors
+
+            toAdd.forEach { visitorId ->
+                BookingTable.insert {
+                    it[BookingTable.activityId] = activity.id
+                    it[BookingTable.visitorId] = visitorId
+                }
+            }
+
+            toRemove.forEach { visitorId ->
+                BookingTable.deleteWhere {
+                    (BookingTable.activityId eq activity.id) and (BookingTable.visitorId eq visitorId)
                 }
             }
         }
