@@ -1,4 +1,4 @@
-tor:
+ktor:
   deployment:
     port: 8080
   application:
