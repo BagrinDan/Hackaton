@@ -1,9 +1,12 @@
 package com.hackathon.summer.faf.presentation.controller
 
 
+import com.hackathon.summer.faf.application.usecase.AddActivityUseCase
 import com.hackathon.summer.faf.application.usecase.BookActivityUseCase
 import com.hackathon.summer.faf.application.usecase.CancelActivityUseCase
+import com.hackathon.summer.faf.application.usecase.RemoveActivityUseCase
 import com.hackathon.summer.faf.domain.repository.ActivityRepository
+import com.hackathon.summer.faf.presentation.request.ActivityRequest
 import com.hackathon.summer.faf.presentation.request.VisitorRequest
 import com.hackathon.summer.faf.presentation.response.ActivityResponse
 import com.hackathon.summer.faf.presentation.response.ErrorResponse
@@ -19,7 +22,9 @@ import io.ktor.server.routing.*
 class ActivityController(
     private val activityRepository: ActivityRepository,
     private val bookActivityUseCase: BookActivityUseCase,
-    private val cancelActivityUseCase: CancelActivityUseCase
+    private val cancelActivityUseCase: CancelActivityUseCase,
+    private val addActivityUseCase: AddActivityUseCase,
+    private val removeActivityUseCase: RemoveActivityUseCase
 ) {
 
     suspend fun book(call: ApplicationCall) {
@@ -137,6 +142,49 @@ class ActivityController(
             HttpStatusCode.OK,
             mapOf("activities" to response)
         )
+    }
+
+    suspend fun addActivity(call: ApplicationCall) {
+
+        val request = call.receive<ActivityRequest>()
+
+        val activity = addActivityUseCase.execute(
+            id = request.id,
+            name = request.name,
+            description = request.description,
+            capacity = request.capacity
+        )
+
+        call.respond(
+            HttpStatusCode.Created,
+            ActivityResponse(
+                activity_id = activity.id,
+                activity_name = activity.name,
+                description = activity.description,
+                capacity = activity.capacity,
+                remaining = activity.remaining()
+            )
+        )
+    }
+
+    suspend fun removeActivity(call: ApplicationCall) {
+
+        val activityId = call.parameters["activity_id"]
+            ?: return call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse(ActivityErrors.MISSING_ACTIVITY_ID)
+            )
+
+        val removed = removeActivityUseCase.execute(activityId)
+
+        if (!removed) {
+            return call.respond(
+                HttpStatusCode.NotFound,
+                ErrorResponse(ActivityErrors.ACTIVITY_NOT_FOUND)
+            )
+        }
+
+        call.respond(HttpStatusCode.OK, mapOf("status" to "removed"))
     }
 
     private fun statusCodeFor(error: String): HttpStatusCode {
