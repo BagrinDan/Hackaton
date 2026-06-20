@@ -1,25 +1,29 @@
-package com.hackathon.summer.faf.infrastructure.database
-
-import com.hackathon.summer.faf.infrastructure.database.table.ActivityTable
-import com.hackathon.summer.faf.infrastructure.database.table.VisitorsTable
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.config.*
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.transaction
-
-
 object DatabaseFactory {
     fun init(config: ApplicationConfig) {
+        val rawUrl = System.getenv("JDBC_URL") ?: config.property("database.jdbcUrl").getString()
+        
+        // Конвертируем postgresql://user:pass@host/db → jdbc:postgresql://host/db
+        val jdbcUrl: String
+        val username: String
+        val password: String
+        
+        if (rawUrl.startsWith("postgresql://") || rawUrl.startsWith("postgres://")) {
+            val uri = java.net.URI(rawUrl)
+            val userInfo = uri.userInfo?.split(":") ?: listOf("beach_user", "")
+            jdbcUrl = "jdbc:postgresql://${uri.host}:${if (uri.port == -1) 5432 else uri.port}${uri.path}"
+            username = userInfo[0]
+            password = userInfo.getOrElse(1) { "" }
+        } else {
+            jdbcUrl = rawUrl
+            username = System.getenv("DB_USER") ?: config.property("database.username").getString()
+            password = System.getenv("DB_PASSWORD") ?: config.property("database.password").getString()
+        }
+
         val hikariConfig = HikariConfig().apply {
-            jdbcUrl = System.getenv("JDBC_URL")?.replace("^postgresql://".toRegex(), "jdbc:postgresql://")
-                ?: config.property("database.jdbcUrl").getString()
+            this.jdbcUrl = jdbcUrl
             driverClassName = config.property("database.driverClassName").getString()
-            username = System.getenv("DB_USER") 
-                ?: config.property("database.username").getString()
-            password = System.getenv("DB_PASSWORD") 
-                ?: config.property("database.password").getString()
+            this.username = username
+            this.password = password
             maximumPoolSize = config.property("database.maximumPoolSize").getString().toInt()
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
