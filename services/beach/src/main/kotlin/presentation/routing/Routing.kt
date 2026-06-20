@@ -29,6 +29,14 @@ fun Route.activityRoutes(
         get("/{activity_id}") {
             controller.getActivity(call)
         }
+
+        post {
+            controller.addActivity(call)
+        }
+
+        delete("/{activity_id}") {
+            controller.removeActivity(call)
+        }
     }
 
     get("/activities") {
