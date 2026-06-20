@@ -37,7 +37,7 @@ class Gate:
         rank = _effective_rank(guest)
         insert_at = len(self.queue)
         for i, existing in enumerate(self.queue):
-            if _effective_rank(existing) >= rank:
+            if _effective_rank(existing) > rank:
                 insert_at = i
                 break
         self.queue.insert(insert_at, guest)
