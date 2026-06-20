@@ -37,7 +37,7 @@ class Gate:
         rank = _effective_rank(guest)
         insert_at = len(self.queue)
         for i, existing in enumerate(self.queue):
-            if _effective_rank(existing) >= rank:
+            if _effective_rank(existing) > rank:
                 insert_at = i
                 break
         self.queue.insert(insert_at, guest)
@@ -67,11 +67,10 @@ class Gate:
                     db.session.commit()
 
             real_delay = self.processing_time / GAME_SPEED
-            started_at = game_now()
             time.sleep(real_delay)
 
             processed_at = game_now()
-            wait_time = processed_at - started_at
+            wait_time = processed_at - guest["queued_at"]
             guest["status"] = "processed"
             guest["processed_at"] = processed_at
             guest["wait_time_seconds"] = wait_time
@@ -144,18 +143,18 @@ class GateManager:
         return min(candidates, key=lambda g: len(g.queue))
 
     def assign_and_enqueue(self, guest: dict) -> dict:
-        if guest["passport_type"] == "EU":
-            eu_gate = self._shortest_queue_gate("EU")
-            all_gate = self._shortest_queue_gate("ALL")
-            gate = all_gate if len(all_gate.queue) < len(eu_gate.queue) else eu_gate
-        else:
-            gate = self._shortest_queue_gate("ALL")
-
-        guest["queued_at"] = game_now()
-        guest["status"] = "queued"
-        guest["gate"] = gate.gate_id
-
         with self.assignment_lock:
+            if guest["passport_type"] == "EU":
+                eu_gate = self._shortest_queue_gate("EU")
+                all_gate = self._shortest_queue_gate("ALL")
+                gate = all_gate if len(all_gate.queue) < len(eu_gate.queue) else eu_gate
+            else:
+                gate = self._shortest_queue_gate("ALL")
+
+            guest["queued_at"] = game_now()
+            guest["status"] = "queued"
+            guest["gate"] = gate.gate_id
+
             with self.app.app_context():
                 arrival = Arrival(
                     guest_id=guest["guest_id"],
@@ -173,14 +172,15 @@ class GateManager:
                 db.session.commit()
                 guest["arrival_id"] = arrival.id
 
-        with gate.lock:
-            position = gate.enqueue(guest)
+            with gate.lock:
+                position = gate.enqueue(guest)
+                queue_size = len(gate.queue)
 
         return {
             "guest_id": guest["guest_id"],
             "gate": gate.gate_id,
             "position": position,
-            "queue_size": len(gate.queue),
+            "queue_size": queue_size,
             "queued_at": guest["queued_at"],
         }
 
@@ -214,7 +214,7 @@ class GateManager:
                     queue_snapshot.append({**cp, "position": 0, "wait_time_seconds": now - cp["queued_at"]})
                 for i, g in enumerate(gate.queue):
                     queue_snapshot.append({**g, "position": i + 1, "wait_time_seconds": now - g["queued_at"]})
-                total_queued += len(gate.queue)
+                total_queued += len(queue_snapshot)
             gates_list.append({
                 "gate_id": gate.gate_id,
                 "gate_type": gate.gate_type,
