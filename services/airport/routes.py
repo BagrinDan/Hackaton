@@ -116,6 +116,28 @@ def register_routes(app):
     def get_stats_route():
         return jsonify(get_stats()), 200
 
+    @app.route("/gates", methods=["POST"])
+    def open_gate_route():
+        data = request.get_json(silent=True) or {}
+        gate_type = data.get("gate_type")
+        if gate_type not in ("EU", "ALL"):
+            return jsonify({"errors": {"gate_type": ["Must be one of: EU, ALL."]}}), 400
+
+        gate = app.gate_manager.open_gate(gate_type)
+        return jsonify({"gate_id": gate.gate_id, "gate_type": gate.gate_type}), 201
+
+    @app.route("/gates/<gate_id>", methods=["DELETE"])
+    def close_gate_route(gate_id):
+        try:
+            result = app.gate_manager.close_gate(gate_id)
+        except ValueError as err:
+            return jsonify({"error": str(err)}), 400
+
+        if result is None:
+            return jsonify({"error": "Gate not found"}), 404
+
+        return jsonify(result), 200
+
     @app.route("/health", methods=["GET"])
     def health():
         return jsonify({"status": "ok"}), 200
