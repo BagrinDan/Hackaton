@@ -44,6 +44,18 @@ class Gate:
         self.queue.insert(insert_at, guest)
         return insert_at + 1  # 1-based position
 
+    def _is_clearable(self, guest: dict) -> bool:
+        if guest.get("age", 0) >= 12:
+            return True
+        with self.app.app_context():
+            escort = Arrival.query.filter(
+                Arrival.surname == guest["surname"],
+                Arrival.guest_id != guest["guest_id"],
+                Arrival.age >= 12,
+                Arrival.status.in_(["processing", "processed"]),
+            ).first()
+        return escort is not None
+    
     def start(self):
         thread = threading.Thread(target=self._run, daemon=True)
         thread.start()
@@ -52,10 +64,14 @@ class Gate:
         while self.active:
             guest = None
             with self.lock:
-                if self.queue:
-                    guest = self.queue.pop(0)
+                for i, candidate in enumerate(self.queue):
+                    if self._is_clearable(candidate):
+                        guest = self.queue.pop(i)
+                        break
+                if guest:
                     guest["status"] = "processing"
                     self.currently_processing = guest
+                    self.processing_started_at = game_now()
 
             if guest is None:
                 time.sleep(0.1)
@@ -88,6 +104,7 @@ class Gate:
 
             with self.lock:
                 self.currently_processing = None
+                self.processing_started_at = None
 
 
 class GateManager:
