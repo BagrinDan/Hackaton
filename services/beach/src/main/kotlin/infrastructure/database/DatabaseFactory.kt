@@ -28,7 +28,7 @@ object DatabaseFactory {
             username = user
             password = pass
         } else {
-            jdbcUrl = jdbcUrl = "jdbc:postgresql://$host:5432/$db"
+            jdbcUrl = "jdbc:postgresql://$host:5432/$db"
             username = System.getenv("DB_USER") ?: config.property("database.username").getString()
             password = System.getenv("DB_PASSWORD") ?: config.property("database.password").getString()
         }
