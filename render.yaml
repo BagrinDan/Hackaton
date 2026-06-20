@@ -95,10 +95,20 @@ services:
     dockerContext: ./services/beach
     plan: free
     envVars:
-      - key: DATABASE_URL
+      - key: JDBC_URL
         fromDatabase:
           name: beach-db
           property: connectionString
+      - key: DB_USER
+        fromDatabase:
+          name: beach-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: beach-db
+          property: password
+      - key: APP_PORT
+        value: "8080"
       - key: BROADCAST_URL
         fromService:
           name: broadcast

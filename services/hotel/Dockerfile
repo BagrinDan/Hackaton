@@ -4,12 +4,12 @@ RUN npm install -g pnpm
 
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
 
-# Генерируем Prisma клиент перед сборкой
-RUN pnpm prisma generate
+# Генерируем Prisma клиент вручную после install
+RUN pnpm exec prisma generate
 RUN pnpm build
 
 # ── Runtime ──────────────────────────────────────────────
