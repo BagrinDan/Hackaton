@@ -77,7 +77,7 @@ def _llm_params() -> dict:
 
 def _build_tools(guest_id: str | None) -> list[dict]:
     tools = list(TOOL_SCHEMAS)
-    if guest_id:
+    if guest_id and guest_id.strip():
         tools.extend(GUEST_TOOL_SCHEMAS)
     return tools
 
@@ -192,7 +192,7 @@ async def chat_stream(
     request_id_ctx.set(request_id)
     messages, new_messages = _assemble(message, guest_id, context, history)
     tools = _build_tools(guest_id)
-    client = get_client()
+    client = await get_client()
     reply = FALLBACK
     streamed_parts: list[str] = []  # every token delta emitted to the client, across all rounds
 
@@ -274,7 +274,9 @@ async def chat_stream(
         yield "data: [DONE]\n\n"
     except Exception:
         logger.exception("rid=%s stream chat failed", request_id)
+        new_messages = []  
         yield _sse("error", {"detail": "LLM service unavailable"})
+        yield "data: [DONE]\n\n"
     finally:
-        if store is not None and guest_id:
+        if store is not None and guest_id and new_messages:
             store.append(guest_id, new_messages)

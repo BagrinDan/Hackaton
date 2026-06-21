@@ -4,14 +4,14 @@ import httpx
 from services.parrot.core.config import settings
 from tracing import request_id_ctx
 
+
 TIMEOUT = 5.0
-
 _client: httpx.AsyncClient | None = None
+_client_lock = asyncio.Lock()
 
-
-def _get_client() -> httpx.AsyncClient:
+async def _get_client() -> httpx.AsyncClient: # Эта фукнция по своей сути асинхронна, но роботала синхронно, что странно. Поэтому был добавлен полноценный async
     global _client
-    if _client is None or _client.is_closed:
+    async with _client_lock:
         headers = {"Content-Type": "application/json"}
         if settings.internal_secret:
             headers["X-Internal-Key"] = settings.internal_secret
@@ -19,9 +19,9 @@ def _get_client() -> httpx.AsyncClient:
     return _client
 
 
-def _hdrs() -> dict:
+def _hdrs() -> dict[str, str]: 
     """Per-request headers — propagates the correlation ID downstream for tracing."""
-    rid = request_id_ctx.get()
+    rid = request_id_ctx.get(None)
     return {"X-Request-ID": rid} if rid and rid != "-" else {}
 
 
@@ -32,34 +32,45 @@ async def close_client():
         _client = None
 
 
-async def get_airport_stats() -> str:
-    r = await _get_client().get(f"{settings.airport_service_url}/stats", headers=_hdrs())
-    r.raise_for_status()
-    return json.dumps(r.json())
+async def get_airport_queue_status() -> str:
+    try:
+        r = await _get_client().get(f"{settings.airport_service_url}/queue", headers=_hdrs())
+        r.raise_for_status()
+        return json.dumps(r.json())
+    except httpx.HTTPStatusError as e:
+        return json.dumps({"error": f"status_{e.response.status_code}"})
+    except (httpx.ConnectError, httpx.TimeoutException):
+        return json.dumps({"error": "unavailable"})
 
 
 async def get_airport_queue_status() -> str:
     r = await _get_client().get(f"{settings.airport_service_url}/queue", headers=_hdrs())
     r.raise_for_status()
-    return json.dumps(r.json())
-
+    return r.text
 
 async def get_hotel_rooms() -> str:
     r = await _get_client().get(f"{settings.hotel_service_url}/rooms", headers=_hdrs())
     r.raise_for_status()
-    return json.dumps(r.json())
+    return r.text
 
 
 async def get_guest_arrival_status(guest_id: str) -> str:
+    if not guest_id or not guest_id.isalnum():
+        return json.dumps({"error": "invalid_guest_id"})
+
     r = await _get_client().get(f"{settings.airport_service_url}/arrivals/{guest_id}", headers=_hdrs())
     r.raise_for_status()
-    return json.dumps(r.json())
+    return r.text
 
 
 async def get_guest_reservation(guest_id: str) -> str:
+    if not guest_id or not guest_id.isalnum():
+        return json.dumps({"error": "invalid_guest_id"})
+    
     r = await _get_client().get(f"{settings.hotel_service_url}/reservation/by-guest/{guest_id}", headers=_hdrs())
+
     r.raise_for_status()
-    return json.dumps(r.json())
+    return r.text
 
 
 async def get_guest_journey_status(guest_id: str) -> str:

@@ -5,7 +5,6 @@ from broadcast import BroadcastClient
 from gate_manager import GateManager
 from routes import register_routes
 
-
 def create_app():
     app = Flask(__name__)
 

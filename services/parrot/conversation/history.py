@@ -1,4 +1,5 @@
 import time
+from collections import deque
 
 
 class ConversationStore:
@@ -8,6 +9,7 @@ class ConversationStore:
         self._max_conversations = max_conversations
         self._conversations: dict[str, dict] = {}
 
+
     def get_messages(self, guest_id: str) -> list[dict]:
         entry = self._conversations.get(guest_id)
         if entry is None:
@@ -15,16 +17,18 @@ class ConversationStore:
         entry["last_accessed"] = time.time()
         return list(entry["messages"])
 
+
     def append(self, guest_id: str, messages: list[dict]) -> None:
         if guest_id not in self._conversations:
             self._conversations[guest_id] = {
-                "messages": [],
+                "messages": deque(maxlen=None),  
                 "last_accessed": time.time(),
             }
         entry = self._conversations[guest_id]
         entry["messages"].extend(messages)
         entry["last_accessed"] = time.time()
         self._trim(entry)
+
 
     def get_visible(self, guest_id: str) -> list[dict]:
         entry = self._conversations.get(guest_id)
@@ -34,6 +38,7 @@ class ConversationStore:
             m for m in entry["messages"]
             if m.get("role") in ("user", "assistant") and "tool_calls" not in m
         ]
+
 
     def _trim(self, entry: dict) -> None:
         msgs = entry["messages"]
@@ -46,6 +51,7 @@ class ConversationStore:
                 if msgs[0].get("role") == "assistant" and "tool_calls" not in msgs[0]:
                     content_count -= 1
                 msgs.pop(0)
+
 
     def cleanup(self) -> None:
         now = time.time()
