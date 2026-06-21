@@ -28,7 +28,7 @@ router.post("/available", (req, res) => {
 
   broadcast({
     id: uuid(),
-    type: EventType.BEACH_FULL,
+    type: EventType.BEACH_AVAILABLE,
     timestamp: new Date().toISOString(),
     source: "beach",
     payload: {
