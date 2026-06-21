@@ -6,6 +6,8 @@ import oceanBg from "@/assets/ocean-bg.svg";
 import { ConnectionStatus } from "@/features/broadcast/components/connection-status";
 import { GuestHud } from "@/features/map/components/guest-hud";
 import { IslandTitle } from "@/features/map/components/island-title";
+import { KikiCompanion } from "@/features/map/components/kiki-companion";
+import { KikiWardrobeButton } from "@/features/map/components/kiki-wardrobe";
 import { ZoneLayer } from "@/features/map/components/zone-layer";
 import { ZonePanel } from "@/features/map/components/zone-panel";
 import { ZoneId } from "@/features/map/constants";
@@ -63,6 +65,10 @@ export function MapPage() {
       </div>
 
       <IslandTitle />
+
+      <KikiWardrobeButton />
+
+      <KikiCompanion />
 
       <ConnectionStatus status={status} />
 
