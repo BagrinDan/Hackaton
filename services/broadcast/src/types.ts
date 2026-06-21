@@ -5,6 +5,7 @@ export enum EventType {
   HOTEL_CANCEL = "hotel.reservation_cancelled",
 
   BEACH_FULL = "beach.activity_full",
+  BEACH_AVAILABLE = "beach.activity_available",
 
   PUBLIC_ANNOUNCEMENT = "public.announcement",
 }
