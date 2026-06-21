@@ -21,11 +21,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - AIRPORT_URL=http://airport:3001
-      - HOTEL_URL=http://hotel:3000
-      - BEACH_URL=http://beach:8080
-      - PARROT_URL=http://parrot:3003
-      - BROADCAST_URL=http://broadcast:3002
+      - AIRPORT_SERVICE_URL=http://airport:3001
+      - HOTEL_SERVICE_URL=http://hotel:3000
+      - BEACH_SERVICE_URL=http://beach:8080
+      - PARROT_SERVICE_URL=http://parrot:3003
+      - BROADCAST_SERVICE_URL=http://broadcast:3000
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
     depends_on:
       - airport
       - hotel
@@ -50,19 +51,19 @@ services:
       - island
 
   hotel:
-    build:
-      context: ./services/hotel
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgresql://hotel_user:hotel_pass@hotel_db:5432/hotel
-      - BROADCAST_URL=http://broadcast:3002
-    depends_on:
-      hotel_db:
-        condition: service_healthy
-    networks:
-      - island
+      build:
+        context: ./services/hotel
+        dockerfile: Dockerfile
+      ports:
+        - "3000:3000"
+      environment:
+        - DATABASE_URL=postgresql://hotel_user:hotel_pass@hotel_db:5432/hotel
+        - BROADCAST_URL=http://broadcast:3000
+      depends_on:
+        hotel_db:
+          condition: service_healthy
+      networks:
+        - island
 
   hotel_db:
     image: postgres:16-alpine
@@ -88,7 +89,7 @@ services:
       - "8080:8080"
     environment:
       - DATABASE_URL=postgresql://beach_user:beach_pass@beach_db:5432/beach
-      - BROADCAST_URL=http://broadcast:3002
+      - BROADCAST_URL=http://broadcast:3000
     depends_on:
       beach_db:
         condition: service_healthy
@@ -132,7 +133,10 @@ services:
       context: ./services/broadcast
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "3002:3000"
+    environment:
+      - PORT=3000      
+      - CORS_ORIGIN=*
     networks:
       - island
 

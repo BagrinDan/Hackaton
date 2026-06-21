@@ -7,19 +7,22 @@ import (
 )
 
 func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
-	originSet := make(map[string]bool)
-	allowAll := false
-	for _, o := range allowedOrigins {
-		trimmed := strings.TrimSpace(o)
-		if trimmed == "*" {
-			allowAll = true
-		}
-		originSet[trimmed] = true
-	}
+    originSet := make(map[string]bool)
+    allowAll := false
+    for _, o := range allowedOrigins {
+        trimmed := strings.TrimSpace(o)
+        if trimmed == "*" {
+            allowAll = true
+        }
+        originSet[trimmed] = true
+    }
+    log.Printf("CORS init: allowAll=%v origins=%v", allowAll, allowedOrigins)
 
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			origin := r.Header.Get("Origin")
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            origin := r.Header.Get("Origin")
+            log.Printf("CORS request: origin=%q method=%s path=%s inSet=%v",
+                origin, r.Method, r.URL.Path, originSet[origin])
 
 			if allowAll && origin != "" {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
