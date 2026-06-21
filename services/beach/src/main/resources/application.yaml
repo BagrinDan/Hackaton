@@ -4,8 +4,9 @@ ktor:
   application:
     modules:
       - com.hackathon.summer.faf.ApplicationKt.module
+
 database:
-  jdbcUrl: "jdbc:postgresql://localhost:5432/beach"
+  jdbcUrl: "jdbc:postgresql://beach_db:5432/beach"
   driverClassName: "org.postgresql.Driver"
   username: "beach_user"
   password: "beach_pass"
