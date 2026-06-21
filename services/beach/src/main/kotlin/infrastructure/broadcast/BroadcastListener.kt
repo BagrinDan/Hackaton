@@ -1,5 +1,6 @@
 package com.hackathon.summer.faf.infrastructure.broadcast
 
+import com.hackathon.summer.faf.domain.repository.ActivityRepository
 import com.hackathon.summer.faf.infrastructure.database.table.VisitorsTable
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -16,7 +17,9 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 
-class BroadcastListener {
+class BroadcastListener(
+    private val activityRepository: ActivityRepository
+) {
 
     private val broadcastServiceUrl = System.getenv("BROADCAST_SERVICE_URL")
 
@@ -68,19 +71,30 @@ class BroadcastListener {
             val event = Json.parseToJsonElement(jsonText).jsonObject
             val type = event["type"]?.jsonPrimitive?.content ?: return
 
-            if (type == "hotel.reservation_confirmed") {
+            when (type) {
 
-                val payload = event["payload"]?.jsonObject ?: return
-                val body = payload["body"]?.jsonObject ?: payload
+                "hotel.reservation_confirmed" -> {
+                    val guestId = extractGuestId(event) ?: return
+                    markVisitorCheckedIn(guestId)
+                }
 
-                val guestId = body["guest_id"]?.jsonPrimitive?.content ?: return
-
-                markVisitorCheckedIn(guestId)
+                "hotel.reservation_cancelled" -> {
+                    val guestId = extractGuestId(event) ?: return
+                    activityRepository.removeVisitorFromAllActivities(guestId)
+                }
             }
 
         } catch (e: Exception) {
             println("Failed to process broadcast event: ${e.message}")
         }
+    }
+
+    private fun extractGuestId(event: kotlinx.serialization.json.JsonObject): String? {
+
+        val payload = event["payload"]?.jsonObject ?: return null
+        val body = payload["body"]?.jsonObject ?: payload
+
+        return body["guest_id"]?.jsonPrimitive?.content
     }
 
     private fun markVisitorCheckedIn(visitorId: String) {
