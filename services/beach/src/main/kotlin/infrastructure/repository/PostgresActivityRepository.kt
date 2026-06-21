@@ -2,6 +2,7 @@ package com.hackathon.summer.faf.infrastructure.repository
 
 import com.hackathon.summer.faf.domain.model.Activity
 import com.hackathon.summer.faf.domain.repository.ActivityRepository
+import com.hackathon.summer.faf.domain.repository.BookingResult
 import com.hackathon.summer.faf.infrastructure.database.table.ActivityTable
 import com.hackathon.summer.faf.infrastructure.database.table.BookingTable
 import org.jetbrains.exposed.sql.*
@@ -111,41 +112,54 @@ class PostgresActivityRepository : ActivityRepository {
             }
         }
     }
-}
 
-override fun tryBook(activityId: String, visitorId: String): com.hackathon.summer.faf.domain.repository.BookingResult {
-
-    return transaction {
-
-        val activityRow = ActivityTable
-            .select { ActivityTable.id eq activityId }
-            .forUpdate()
-            .singleOrNull()
-            ?: return@transaction com.hackathon.summer.faf.domain.repository.BookingResult.ACTIVITY_NOT_FOUND
-
-        val capacity = activityRow[ActivityTable.capacity]
-
-        val currentBookingsCount = BookingTable
-            .select { BookingTable.activityId eq activityId }
-            .count()
-
-        val alreadyBooked = BookingTable
-            .select { (BookingTable.activityId eq activityId) and (BookingTable.visitorId eq visitorId) }
-            .count() > 0
-
-        if (alreadyBooked) {
-            return@transaction com.hackathon.summer.faf.domain.repository.BookingResult.ALREADY_BOOKED
+    override fun delete(id: String) {
+        transaction {
+            BookingTable.deleteWhere { BookingTable.activityId eq id }
+            ActivityTable.deleteWhere { ActivityTable.id eq id }
         }
+    }
 
-        if (currentBookingsCount >= capacity) {
-            return@transaction com.hackathon.summer.faf.domain.repository.BookingResult.FULL
+    override fun tryBook(activityId: String, visitorId: String): BookingResult {
+
+        return transaction {
+
+            val activityRow = ActivityTable
+                .select { ActivityTable.id eq activityId }
+                .forUpdate()
+                .singleOrNull()
+                ?: return@transaction BookingResult.ACTIVITY_NOT_FOUND
+
+            val capacity = activityRow[ActivityTable.capacity]
+
+            val currentBookingsCount = BookingTable
+                .select { BookingTable.activityId eq activityId }
+                .count()
+
+            val alreadyBooked = BookingTable
+                .select { (BookingTable.activityId eq activityId) and (BookingTable.visitorId eq visitorId) }
+                .count() > 0
+
+            if (alreadyBooked) {
+                return@transaction BookingResult.ALREADY_BOOKED
+            }
+
+            if (currentBookingsCount >= capacity) {
+                return@transaction BookingResult.FULL
+            }
+
+            BookingTable.insert {
+                it[BookingTable.activityId] = activityId
+                it[BookingTable.visitorId] = visitorId
+            }
+
+            BookingResult.SUCCESS
         }
+    }
 
-        BookingTable.insert {
-            it[BookingTable.activityId] = activityId
-            it[BookingTable.visitorId] = visitorId
+    override fun removeVisitorFromAllActivities(visitorId: String) {
+        transaction {
+            BookingTable.deleteWhere { BookingTable.visitorId eq visitorId }
         }
-
-        com.hackathon.summer.faf.domain.repository.BookingResult.SUCCESS
     }
 }

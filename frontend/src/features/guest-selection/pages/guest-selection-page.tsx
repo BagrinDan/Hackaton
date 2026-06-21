@@ -33,7 +33,10 @@ export function GuestSelectionPage() {
         src={oceanBg}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        className="pointer-events-none absolute inset-0 h-full w-full scale-105 object-cover transition-transform duration-[8000ms] ease-in-out"
+        style={{
+          animation: "drift-bg 22s ease-in-out infinite alternate",
+        }}
       />
 
       <section className="relative w-full max-w-6xl perspective-distant">
