@@ -119,8 +119,8 @@ services:
     ports:
       - "3003:3003"
     environment:
-      - AIRPORT_URL=http://airport:3001
-      - HOTEL_URL=http://hotel:3000
+      - AIRPORT_SERVICE_URL=http://airport:3001
+      - HOTEL_SERVICE_URL=http://hotel:3000
       - LLM_API_KEY=${LLM_API_KEY}
     depends_on:
       - airport

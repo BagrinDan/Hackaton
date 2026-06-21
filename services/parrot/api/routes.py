@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from schemas import (
+from core.schemas import (
     ChatRequest,
     ChatResponse,
     HistoryResponse,
@@ -9,10 +9,10 @@ from schemas import (
     ConversationListResponse,
     ConversationDetailResponse,
 )
-from history import ConversationStore
-from llm import chat, chat_stream
-from tracing import request_id_ctx
-import admin
+from conversation.history import ConversationStore
+from ai.llm import chat, chat_stream
+from ai.tracing import request_id_ctx
+from storage import metrics as admin
 
 logger = logging.getLogger(__name__)
 

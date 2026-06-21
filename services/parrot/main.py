@@ -6,10 +6,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from context_loader import load_context
 from services import close_client
-from history import ConversationStore
-from llm import close_llm_client
-from routes import router
-from services.parrot.core.config import settings
+from conversation.history import ConversationStore
+from ai.llm import close_llm_client
+from api.routes import router
+from core.config import settings
 
 logging.basicConfig(
     level=logging.INFO,

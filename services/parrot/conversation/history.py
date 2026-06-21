@@ -45,12 +45,12 @@ class ConversationStore:
         content_count = sum(1 for m in msgs if m.get("role") in ("user", "assistant") and "tool_calls" not in m)
         while content_count > self._max_messages and msgs:
             if msgs[0].get("role") == "user":
-                msgs.pop(0)
+                msgs.popleft()
                 content_count -= 1
             while msgs and msgs[0].get("role") != "user":
                 if msgs[0].get("role") == "assistant" and "tool_calls" not in msgs[0]:
                     content_count -= 1
-                msgs.pop(0)
+                msgs.popleft()
 
 
     def cleanup(self) -> None:
