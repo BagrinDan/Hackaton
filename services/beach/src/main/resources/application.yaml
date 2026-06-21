@@ -6,8 +6,8 @@ ktor:
       - com.hackathon.summer.faf.ApplicationKt.module
 
 database:
-  jdbcUrl: dsa
+  jdbcUrl: "jdbc:postgresql://beach_db:5432/beach"
   driverClassName: "org.postgresql.Driver"
-  username: dsa
-  password: dsa
+  username: "beach_user"
+  password: "beach_pass"
   maximumPoolSize: 10
