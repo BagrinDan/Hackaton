@@ -3,7 +3,7 @@ import logging
 import time
 from typing import TYPE_CHECKING
 from openai import AsyncOpenAI
-from config import settings
+from services.parrot.core.config import settings
 from profanity import mask_profanity
 from tools import TOOL_SCHEMAS, GUEST_TOOL_SCHEMAS, execute_tool
 from tracing import request_id_ctx

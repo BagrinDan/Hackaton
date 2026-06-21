@@ -1,6 +1,6 @@
 import re
 
-from config import settings
+from services.parrot.core.config import settings
 
 # Character used to mask a profane word, preserving its length. Single source of
 # truth so store-derived metrics (admin.py) can detect a masked message.

@@ -1,7 +1,7 @@
 import asyncio
 import json
 import httpx
-from config import settings
+from services.parrot.core.config import settings
 from tracing import request_id_ctx
 
 TIMEOUT = 5.0

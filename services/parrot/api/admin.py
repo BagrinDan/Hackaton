@@ -3,7 +3,7 @@ import json
 
 import logging
 from history import ConversationStore
-from metrics import Metrics
+from services.parrot.storage.metrics import Metrics
 from conv_sum import ConversationSummary
 from llm import FALLBACK
 from profanity import contains_mask

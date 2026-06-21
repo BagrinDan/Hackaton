@@ -9,7 +9,7 @@ from services import close_client
 from history import ConversationStore
 from llm import close_llm_client
 from routes import router
-from config import settings
+from services.parrot.core.config import settings
 
 logging.basicConfig(
     level=logging.INFO,
