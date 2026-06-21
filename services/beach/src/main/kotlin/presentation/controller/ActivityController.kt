@@ -1,6 +1,6 @@
 package com.hackathon.summer.faf.presentation.controller
 
-
+import com.hackathon.summer.faf.plugins.requireAdmin
 import com.hackathon.summer.faf.application.usecase.AddActivityUseCase
 import com.hackathon.summer.faf.application.usecase.BookActivityUseCase
 import com.hackathon.summer.faf.application.usecase.CancelActivityUseCase

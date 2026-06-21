@@ -37,8 +37,9 @@ dependencies {
     implementation("io.ktor:ktor-server-openapi-jvm:2.3.12")
     implementation("io.ktor:ktor-server-swagger-jvm:2.3.12")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
+    implementation("io.ktor:ktor-client-core:2.3.12")
+    implementation("io.ktor:ktor-client-cio:2.3.12")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
 
     // Exposed
     implementation("org.jetbrains.exposed:exposed-core:0.50.1")

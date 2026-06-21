@@ -12,7 +12,7 @@ const faceClass =
 export function FlipCard({ flipped, front, back }: FlipCardProps) {
   return (
     <div
-      className="relative transition-transform duration-700 [transform-style:preserve-3d]"
+      className="relative transition-transform duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] [transform-style:preserve-3d]"
       style={{ transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
     >
       <div className={faceClass}>{front}</div>
