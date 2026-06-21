@@ -23,20 +23,20 @@ export function GuestCard({ guest, onSelect }: GuestCardProps) {
   return (
     <Card
       data-testid={`guest-card-${guest.id}`}
-      className="group relative flex h-full overflow-hidden border-2 bg-card/95 shadow-lg transition duration-200 hover:-translate-y-1 hover:rotate-[0.35deg] hover:border-primary/50 hover:shadow-xl"
+      className="group relative flex h-full overflow-hidden border-2 bg-card/95 shadow-lg transition duration-200 hover:-translate-y-1.5 hover:rotate-[0.35deg] hover:border-primary/50 hover:shadow-xl"
     >
-      <div className="absolute top-4 right-4 size-20 rounded-full border-[10px] border-secondary/35 transition-transform duration-200 group-hover:scale-110" />
+      <div className="guest-ring-pulse absolute top-4 right-4 size-20 rounded-full border-[10px] border-secondary/35 transition-transform duration-200 group-hover:scale-110 group-hover:border-primary/50" />
 
       <CardHeader className="relative">
         <div className="flex items-start justify-between gap-4">
-          <Avatar className="size-16 rotate-[-3deg] border-4 border-secondary bg-primary text-xl font-bold text-primary-foreground shadow-md">
+          <Avatar className="size-16 rotate-[-3deg] border-4 border-secondary bg-primary text-xl font-bold text-primary-foreground shadow-md transition-transform duration-200 group-hover:rotate-[3deg] group-hover:scale-105">
             <AvatarFallback className="bg-primary text-primary-foreground">
               {initials}
             </AvatarFallback>
           </Avatar>
           <Badge
             variant={guest.priority === "fast" ? "default" : "secondary"}
-            className="rounded-full px-3 py-1 font-semibold tracking-wide uppercase"
+            className="rounded-full px-3 py-1 font-semibold tracking-wide uppercase transition-transform duration-200 group-hover:scale-105"
           >
             {guest.priority === "fast" ? "Fast pass" : "Standard"}
           </Badge>
@@ -52,7 +52,7 @@ export function GuestCard({ guest, onSelect }: GuestCardProps) {
       </CardHeader>
 
       <CardContent className="relative">
-        <div className="rounded-lg border border-dashed border-primary/30 bg-accent/50 p-4">
+        <div className="rounded-lg border border-dashed border-primary/30 bg-accent/50 p-4 transition-colors duration-200 group-hover:border-primary/50 group-hover:bg-accent/70">
           <p className="text-sm leading-6 font-medium text-accent-foreground">
             {guest.personality}
           </p>
@@ -71,7 +71,7 @@ export function GuestCard({ guest, onSelect }: GuestCardProps) {
       <CardFooter className="relative mt-auto">
         <Button
           data-testid="guest-confirm"
-          className="w-full"
+          className="w-full transition-transform duration-150 hover:scale-[1.03] active:scale-[0.96]"
           onClick={() => onSelect(guest)}
         >
           Choose this guest
