@@ -97,3 +97,43 @@ async def get_guest_journey_status(guest_id: str) -> str:
         _leg(f"{settings.hotel_service_url}/reservation/by-guest/{guest_id}"),
     )
     return json.dumps({"guest_id": guest_id, "arrival": arrival, "reservation": reservation})
+
+
+# Freestyle feature
+
+async def create_reservation(guest_id: str, room_id: str, check_in_day: int, check_out_day: int, guest_count: int) -> str:
+    if not guest_id or not guest_id.replace("-", "").isalnum():
+        return json.dumps({"error": "invalid_guest_id"})
+    try:
+        client = await _get_client()
+        r = await client.post(
+            f"{settings.hotel_service_url}/reservation",
+            headers=_hdrs(),
+            json={
+                "guest_id": guest_id,
+                "room_id": room_id,
+                "check_in_day": check_in_day,
+                "check_out_day": check_out_day,
+                "guest_count": guest_count,
+            },
+        )
+        r.raise_for_status()
+        return r.text
+    except httpx.HTTPStatusError as e:
+        return json.dumps({"error": f"status_{e.response.status_code}"})
+    except (httpx.ConnectError, httpx.TimeoutException):
+        return json.dumps({"error": "unavailable"})
+
+async def cancel_reservation(reservation_id: str) -> str:
+    try:
+        client = await _get_client()
+        r = await client.delete(
+            f"{settings.hotel_service_url}/reservation/{reservation_id}",
+            headers=_hdrs(),
+        )
+        r.raise_for_status()
+        return r.text
+    except httpx.HTTPStatusError as e:
+        return json.dumps({"error": f"status_{e.response.status_code}"})
+    except (httpx.ConnectError, httpx.TimeoutException):
+        return json.dumps({"error": "unavailable"})
