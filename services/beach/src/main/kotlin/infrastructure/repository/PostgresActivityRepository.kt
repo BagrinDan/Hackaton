@@ -156,4 +156,10 @@ class PostgresActivityRepository : ActivityRepository {
             BookingResult.SUCCESS
         }
     }
+
+    override fun removeVisitorFromAllActivities(visitorId: String) {
+        transaction {
+            BookingTable.deleteWhere { BookingTable.visitorId eq visitorId }
+        }
+    }
 }
