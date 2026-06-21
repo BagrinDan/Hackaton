@@ -13,6 +13,8 @@ interface ActivityRepository {
     fun delete(id: String)
 
     fun tryBook(activityId: String, visitorId: String): BookingResult
+
+    fun removeVisitorFromAllActivities(visitorId: String)
 }
 
 enum class BookingResult {
