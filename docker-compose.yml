@@ -21,17 +21,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - AIRPORT_URL=http://airport:3001
-      - HOTEL_URL=http://hotel:3000
-      - BEACH_URL=http://beach:8080
-      - PARROT_URL=http://parrot:3003
-      - BROADCAST_URL=http://broadcast:3002
-    depends_on:
-      - airport
-      - hotel
-      - beach
-      - parrot
-      - broadcast
+      - AIRPORT_SERVICE_URL=http://airport:3001
+      - HOTEL_SERVICE_URL=http://hotel:3000
+      - BEACH_SERVICE_URL=http://beach:8080
+      - PARROT_SERVICE_URL=http://parrot:3003
+      - BROADCAST_SERVICE_URL=http://broadcast:3000
+    volumes:
+      - airport_data:/app/data
+
     networks:
       - island
 
@@ -48,6 +45,7 @@ services:
       - airport_data:/app/data
     networks:
       - island
+
 
   hotel:
     build:
@@ -123,9 +121,9 @@ services:
     ports:
       - "3003:3003"
     environment:
-      - AIRPORT_URL=http://airport:3001
-      - HOTEL_URL=http://hotel:3000
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AIRPORT_SERVICE_URL=http://airport:3001
+      - HOTEL_SERVICE_URL=http://hotel:3000
+      - OPENAI_API_KEY=${LLM_API_KEY}
     depends_on:
       - airport
       - hotel
