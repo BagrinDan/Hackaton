@@ -1,0 +1,141 @@
+databases:
+  - name: hotel-db
+    databaseName: hotel
+    user: hotel_user
+    plan: free
+
+  - name: beach-db
+    databaseName: beach
+    user: beach_user
+    plan: free
+
+services:
+  - type: web
+    name: frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      - key: VITE_GATEWAY_URL
+        fromService:
+          name: gateway
+          type: web
+          property: host
+
+  - type: web
+    name: gateway
+    runtime: docker
+    dockerfilePath: ./gateway/Dockerfile
+    dockerContext: ./gateway
+    plan: free
+    envVars:
+      - key: AIRPORT_URL
+        fromService:
+          name: airport
+          type: web
+          property: host
+      - key: HOTEL_URL
+        fromService:
+          name: hotel
+          type: web
+          property: host
+      - key: BEACH_URL
+        fromService:
+          name: beach
+          type: web
+          property: host
+      - key: PARROT_URL
+        fromService:
+          name: parrot
+          type: web
+          property: host
+      - key: BROADCAST_URL
+        fromService:
+          name: broadcast
+          type: web
+          property: host
+
+  - type: web
+    name: airport
+    runtime: docker
+    dockerfilePath: ./services/airport/Dockerfile
+    dockerContext: ./services/airport
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:///./data/airport.db
+      - key: BROADCAST_URL
+        fromService:
+          name: broadcast
+          type: web
+          property: host
+
+  - type: web
+    name: hotel
+    runtime: docker
+    dockerfilePath: ./services/hotel/Dockerfile
+    dockerContext: ./services/hotel
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hotel-db
+          property: connectionString
+      - key: BROADCAST_URL
+        fromService:
+          name: broadcast
+          type: web
+          property: host
+
+  - type: web
+    name: beach
+    runtime: docker
+    dockerfilePath: ./services/beach/Dockerfile
+    dockerContext: ./services/beach
+    plan: free
+    envVars:
+      - key: JDBC_URL
+        fromDatabase:
+          name: beach-db
+          property: connectionString
+      - key: DB_USER
+        value: beach_user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: beach-db
+          property: password
+      - key: APP_PORT
+        value: "10000"
+      - key: BROADCAST_URL
+        fromService:
+          name: broadcast
+          type: web
+          property: host
+
+  - type: web
+    name: parrot
+    runtime: docker
+    dockerfilePath: ./services/parrot/Dockerfile
+    dockerContext: ./services/parrot
+    plan: free
+    envVars:
+      - key: AIRPORT_URL
+        fromService:
+          name: airport
+          type: web
+          property: host
+      - key: HOTEL_URL
+        fromService:
+          name: hotel
+          type: web
+          property: host
+      - key: OPENAI_API_KEY
+        sync: false
+
+  - type: web
+    name: broadcast
+    runtime: docker
+    dockerfilePath: ./services/broadcast/Dockerfile
+    dockerContext: ./services/broadcast
+    plan: free
